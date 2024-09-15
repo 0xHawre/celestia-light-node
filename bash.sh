@@ -30,16 +30,17 @@ make cel-key
 echo "Installation complete!"
 celestia version
 
-read -p "Do you already have a cryptocurrency wallet set up? (yes/no): " has_wallet
+
 
 read -p "Do you already have a cryptocurrency wallet set up? (yes/no): " has_wallet
 
 if [[ "$has_wallet" == "no" || "$has_wallet" == "n" ]]; then
     read -p "Please enter a name for your new wallet key: " key_name
     ./cel-key add $key_name --keyring-backend test --node.type light --p2p.network celestia
-else
+elif [[ "$has_wallet" == "yes" || "$has_wallet" == "y" ]]; then
     read -p "Please enter the name for your existing wallet key: " key_name
     ./cel-key add $key_name --recover --keyring-backend test --node.type light --p2p.network celestia
+    else echo "reeei"
 fi
 
 sudo tee <<EOF >/dev/null /etc/systemd/system/celd.service
