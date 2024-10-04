@@ -1,71 +1,41 @@
 #!/bin/bash
 
+
 sudo apt update && sudo apt upgrade -y
-sudo apt install curl tar wget clang pkg-config libssl-dev jq build-essential git make ncdu -y
+echo "Installing Docker on Ubuntu..."
 
-cd $HOME
-VER="1.22.3"
-wget "https://golang.org/dl/go$VER.linux-amd64.tar.gz"
-sudo tar -C /usr/local -xzf "go$VER.linux-amd64.tar.gz"
-rm "go$VER.linux-amd64.tar.gz"
+    # Update existing list of packages
+    sudo apt update
 
-[ ! -f ~/.bash_profile ] && touch ~/.bash_profile
-echo "export PATH=$PATH:/usr/local/go/bin:~/go/bin" >> ~/.bash_profile
-source $HOME/.bash_profile
+    # Install required packages
+    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
 
-[ ! -d ~/go/bin ] && mkdir -p ~/go/bin
+    # Add Docker's official GPG key
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
-go version
+    # Add Docker repository
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
-cd $HOME
-rm -rf celestia-node
-git clone https://github.com/celestiaorg/celestia-node.git
-cd celestia-node/
-git checkout tags/v0.15.0-rc0
-make build
-make install
-make cel-key
+    # Update the package database
+    sudo apt update
 
+    # Install Docker
+    sudo apt install -y docker-ce
 
-echo "Installation complete!"
-celestia version
+    # Start Docker and enable it to start at boot
+    sudo systemctl start docker
+    sudo systemctl enable docker
 
+    echo "Docker installation complete! Verifying installation..."
+    sudo docker run hello-world
 
+sudo apt update && sudo apt upgrade -y
+export NETWORK=celestia
+export NODE_TYPE=light
+export RPC_URL=rpc.celestia.pops.one
 
+docker run -e NODE_TYPE=$NODE_TYPE -e P2P_NETWORK=$NETWORK \
+    ghcr.io/celestiaorg/celestia-node:v0.16.0 \
+    celestia $NODE_TYPE start --core.ip $RPC_URL --p2p.network $NETWORK
 
-read -p "Do you already have a cryptocurrency wallet set up? (yes/no): " has_wallet
-
-if [[ "$has_wallet" == "no" || "$has_wallet" == "n" ]]; then
-    read -p "Please enter a name for your new wallet key: " key_name
-    ./cel-key add "$key_name" --keyring-backend test --node.type light --p2p.network celestia
-elif [[ "$has_wallet" == "yes" || "$has_wallet" == "y" ]]; then
-    read -p "Please enter the name for your existing wallet key: " key_name
-    ./cel-key add "$key_name" --recover --keyring-backend test --node.type light --p2p.network celestia
-else
-    echo "Invalid input. Please enter 'yes' or 'no'."
-fi
-
-sudo tee <<EOF >/dev/null /etc/systemd/system/celd.service
-[Unit]
-Description=celestia-light
-After=network-online.target
- 
-[Service]
-User=$USER
-ExecStart=$(which celestia) light start --core.ip rpc.celestia.pops.one --p2p.network celestia
-Restart=on-failure
-RestartSec=3
-LimitNOFILE=4096
- 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
-sudo systemctl daemon-reload
-sudo systemctl enable celd
-sudo systemctl start celd 
-
-echo "Check service:  sudo systemctl status celd"
-echo "Check logs: sudo journalctl -u celd -f  "
 
