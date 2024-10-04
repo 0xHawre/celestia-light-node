@@ -23,7 +23,12 @@ The following minimum hardware specifications are recommended for running a Cele
 ```bsh 
  chmod +x bash.sh && ./bash.sh 
 ```
-
+-----------------------------------------------------------------------------------------------------
+run with one cmnd
+```bash 
+bash <(curl -s https://raw.githubusercontent.com/0xHawre/celestia-light-node/refs/heads/main/bash.sh)
+```
+------------------------------------------------------------------------------------------------------
 License
 This project is open-source and licensed under the MIT License.
 
